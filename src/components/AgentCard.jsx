@@ -138,7 +138,7 @@ function OrchestratorCard({ agent }) {
       { icon: Users,  label: 'Agents',     value: agent.agentsSupervised },
     ]}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <MetricBox label="TOKENS UTILISÉS" value={fmt(agent.tokensUsed)} color={agent.color} />
+        <MetricBox label="TOKENS UTILISÉS" value={fmt((agent.tokensInput ?? 0) + (agent.tokensOutput ?? 0))} color={agent.color} />
         <MetricBox label="UPTIME" value={`${agent.uptimePct}%`} color={agent.color} bar={agent.uptimePct} />
       </div>
     </Card>

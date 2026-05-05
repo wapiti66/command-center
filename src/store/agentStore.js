@@ -17,15 +17,16 @@ const INITIAL_AGENTS = [
     type: 'orchestrator',
     role: 'Coordination & Stratégie',
     model: 'Claude Opus 4',
+    modelId: 'claude-opus-4',
     status: 'active',
     color: '#ffd700',
-    // Métriques CEO
     tasksDelegated: 247,
     decisionsToday: 34,
     agentsSupervised: 4,
     efficiency: 94,
     uptimePct: 99.8,
-    tokensUsed: 487000,
+    tokensInput: 341000,
+    tokensOutput: 146000,
     currentDirective: 'Supervision pipeline contenu + trading',
   },
   {
@@ -34,9 +35,9 @@ const INITIAL_AGENTS = [
     type: 'trader',
     role: 'Trading Gold XAU/USD',
     model: 'GPT-4o',
+    modelId: 'gpt-4o',
     status: 'active',
     color: '#00d68f',
-    // Métriques trading
     position: 'Long',
     entryPrice: 2312.50,
     currentPrice: 2318.75,
@@ -48,6 +49,8 @@ const INITIAL_AGENTS = [
     drawdown: 2.3,
     stopLoss: 2305.00,
     takeProfit: 2330.00,
+    tokensInput: 198000,
+    tokensOutput: 54000,
     currentTask: 'Analyse signal H4 — résistance 2325',
   },
   {
@@ -56,15 +59,17 @@ const INITIAL_AGENTS = [
     type: 'formation',
     role: 'Création de Formations',
     model: 'Claude Sonnet 4.6',
+    modelId: 'claude-sonnet-4-6',
     status: 'active',
     color: '#9b59ff',
-    // Métriques formation
     currentModule: 'Module 4 — Risk Management',
     modulesCreated: 12,
     totalPages: 847,
     completionRate: 78,
     wordsGenerated: 124500,
     exercicesCreated: 67,
+    tokensInput: 284000,
+    tokensOutput: 187000,
     currentTask: 'Rédaction exercices Module 4',
   },
   {
@@ -73,9 +78,9 @@ const INITIAL_AGENTS = [
     type: 'content',
     role: 'Création de Contenu',
     model: 'Claude Sonnet 4.6',
+    modelId: 'claude-sonnet-4-6',
     status: 'active',
     color: '#00d4ff',
-    // Métriques contenu
     currentTask: 'Thread Twitter — Analyse XAUUSD semaine',
     postsCreated: 47,
     wordsToday: 8420,
@@ -83,6 +88,8 @@ const INITIAL_AGENTS = [
     platforms: ['Twitter', 'LinkedIn', 'Instagram'],
     engagementRate: 4.2,
     scheduledPosts: 12,
+    tokensInput: 156000,
+    tokensOutput: 98000,
   },
   {
     id: 4,
@@ -90,9 +97,9 @@ const INITIAL_AGENTS = [
     type: 'marketing',
     role: 'Stratégie Marketing',
     model: 'GPT-4o',
+    modelId: 'gpt-4o',
     status: 'idle',
     color: '#ff6b6b',
-    // Métriques marketing
     currentTask: null,
     campaignsActive: 3,
     reach: 12400,
@@ -101,6 +108,8 @@ const INITIAL_AGENTS = [
     leadsGenerated: 124,
     emailsSent: 2400,
     conversionRate: 2.8,
+    tokensInput: 87000,
+    tokensOutput: 31000,
   },
 ]
 
@@ -153,7 +162,10 @@ export const useAgentStore = create((set, get) => ({
         return { ...agent, wordsToday: agent.wordsToday + rand(0, 60), wordsTotal: agent.wordsTotal + rand(0, 60) }
       }
       if (agent.type === 'orchestrator') {
-        return { ...agent, tokensUsed: agent.tokensUsed + rand(0, 500), decisionsToday: agent.decisionsToday + (Math.random() > 0.95 ? 1 : 0) }
+        return { ...agent, tokensInput: agent.tokensInput + rand(0, 300), tokensOutput: agent.tokensOutput + rand(0, 150), decisionsToday: agent.decisionsToday + (Math.random() > 0.95 ? 1 : 0) }
+      }
+      if (agent.status === 'active') {
+        return { ...agent, tokensInput: agent.tokensInput + rand(0, 100), tokensOutput: agent.tokensOutput + rand(0, 50) }
       }
       return agent
     }),
