@@ -1,170 +1,164 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useAgentStore } from '../store/agentStore'
 import Layout from '../components/Layout'
 import AgentCard from '../components/AgentCard'
-import StatusBadge from '../components/StatusBadge'
-import { Bot, Filter, Cpu, MemoryStick, Zap, AlertCircle } from 'lucide-react'
+import { Crown, TrendingUp, BookOpen, PenTool, Megaphone } from 'lucide-react'
 
-const FILTERS = ['all', 'active', 'idle', 'error', 'pending']
+const TYPE_ICON = {
+  orchestrator: Crown,
+  trader:       TrendingUp,
+  formation:    BookOpen,
+  content:      PenTool,
+  marketing:    Megaphone,
+}
+
+function AgentRow({ agent }) {
+  const Icon = TYPE_ICON[agent.type] ?? Crown
+
+  const primaryMetric = () => {
+    switch (agent.type) {
+      case 'trader':       return { label: 'PnL Jour', value: `${agent.pnlToday >= 0 ? '+' : ''}${agent.pnlToday?.toFixed(0)}$`, color: agent.pnlToday >= 0 ? 'var(--green-500)' : 'var(--red-500)' }
+      case 'formation':    return { label: 'Modules',  value: agent.modulesCreated,   color: agent.color }
+      case 'content':      return { label: 'Posts',    value: agent.postsCreated,      color: agent.color }
+      case 'marketing':    return { label: 'Leads',    value: agent.leadsGenerated,    color: agent.color }
+      case 'orchestrator': return { label: 'Décisions',value: agent.decisionsToday,    color: agent.color }
+      default: return { label: '-', value: '-', color: 'var(--text-muted)' }
+    }
+  }
+
+  const secondary = () => {
+    switch (agent.type) {
+      case 'trader':       return `Win rate ${agent.winRate}% · ${agent.tradesToday} trades/j`
+      case 'formation':    return `${agent.totalPages} pages · ${(agent.wordsGenerated / 1000).toFixed(0)}K mots`
+      case 'content':      return `${(agent.wordsToday / 1000).toFixed(1)}K mots/j · ${agent.engagementRate}% engagement`
+      case 'marketing':    return `ROI ${agent.roi}% · ${agent.campaignsActive} campagnes`
+      case 'orchestrator': return `${agent.tasksDelegated} délégués · ${agent.efficiency}% efficacité`
+      default: return ''
+    }
+  }
+
+  const pm = primaryMetric()
+
+  return (
+    <tr
+      style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
+      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+    >
+      <td style={{ padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+            background: `${agent.color}15`, border: `1px solid ${agent.color}30`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Icon size={14} color={agent.color} />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
+              {agent.name}
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              {agent.role}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td style={{ padding: '12px 16px' }}>
+        <span style={{
+          fontSize: 11, fontFamily: 'var(--font-mono)',
+          padding: '2px 8px', borderRadius: 3,
+          background: 'rgba(100,100,100,0.1)',
+          color: 'var(--text-secondary)', border: '1px solid var(--border)',
+        }}>
+          {agent.model}
+        </span>
+      </td>
+      <td style={{ padding: '12px 16px' }}>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          padding: '2px 8px', borderRadius: 4,
+          background: `${agent.status === 'active' ? 'rgba(0,214,143,0.12)' : 'rgba(100,100,100,0.1)'}`,
+          border: `1px solid ${agent.status === 'active' ? 'rgba(0,214,143,0.3)' : 'var(--border)'}`,
+          color: agent.status === 'active' ? 'var(--green-500)' : 'var(--text-muted)',
+          fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.06em',
+        }}>
+          <span style={{
+            width: 5, height: 5, borderRadius: '50%',
+            background: agent.status === 'active' ? 'var(--green-500)' : 'var(--text-muted)',
+            animation: agent.status === 'active' ? 'pulse-dot 2s ease-in-out infinite' : 'none',
+          }} />
+          {agent.status.toUpperCase()}
+        </span>
+      </td>
+      <td style={{ padding: '12px 16px' }}>
+        <span style={{ fontSize: 14, fontWeight: 700, fontFamily: 'var(--font-mono)', color: pm.color }}>
+          {pm.value}
+        </span>
+        <div style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{pm.label}</div>
+      </td>
+      <td style={{ padding: '12px 16px' }}>
+        <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+          {secondary()}
+        </span>
+      </td>
+      <td style={{ padding: '12px 16px' }}>
+        <div style={{
+          fontSize: 11, color: agent.color, fontFamily: 'var(--font-mono)',
+          maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {agent.currentTask ?? agent.currentDirective ?? '—'}
+        </div>
+      </td>
+    </tr>
+  )
+}
 
 export default function Agents() {
   const agents = useAgentStore((s) => s.agents)
   const updateAgents = useAgentStore((s) => s.updateAgents)
-  const [filter, setFilter] = useState('all')
 
   useEffect(() => {
     const interval = setInterval(updateAgents, 2000)
     return () => clearInterval(interval)
   }, [updateAgents])
 
-  const filtered = filter === 'all' ? agents : agents.filter((a) => a.status === filter)
-
   return (
-    <Layout title="Agents" subtitle="FLEET MANAGEMENT">
+    <Layout title="Agents" subtitle="GESTION DE LA FLOTTE">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Filter size={13} color="var(--text-muted)" />
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>FILTER:</span>
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              style={{
-                padding: '4px 12px',
-                borderRadius: 4,
-                border: `1px solid ${filter === f ? 'var(--blue-500)' : 'var(--border)'}`,
-                background: filter === f ? 'rgba(0,102,255,0.15)' : 'transparent',
-                color: filter === f ? 'var(--blue-300)' : 'var(--text-muted)',
-                fontSize: 11,
-                fontFamily: 'var(--font-mono)',
-                fontWeight: 600,
-                cursor: 'pointer',
-                letterSpacing: '0.05em',
-                transition: 'all 0.15s',
-              }}
-            >
-              {f.toUpperCase()}
-            </button>
-          ))}
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            {filtered.length} agents
-          </span>
-        </div>
-
+        {/* Table */}
         <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          overflow: 'hidden',
+          background: 'var(--bg-card)', border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)', overflow: 'hidden',
         }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['AGENT', 'STATUS', 'MODEL', 'CPU', 'MEMORY', 'TOKENS', 'TASKS', 'LATENCY'].map((h) => (
+                {['AGENT', 'MODÈLE', 'STATUT', 'KPI PRINCIPAL', 'MÉTRIQUES', 'TÂCHE EN COURS'].map((h) => (
                   <th key={h} style={{
-                    padding: '10px 14px',
-                    textAlign: 'left',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: 'var(--text-muted)',
-                    fontFamily: 'var(--font-mono)',
-                    letterSpacing: '0.08em',
+                    padding: '10px 16px', textAlign: 'left',
+                    fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
+                    fontFamily: 'var(--font-mono)', letterSpacing: '0.08em',
                   }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((agent, i) => (
-                <tr
-                  key={agent.id}
-                  style={{
-                    borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                >
-                  <td style={{ padding: '10px 14px' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {agent.name}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <StatusBadge status={agent.status} />
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                      {agent.model}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <BarCell value={agent.cpu} max={100} unit="%" color="var(--blue-500)" />
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <BarCell value={agent.memory} max={900} unit="MB" color="var(--cyan-500)" />
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
-                      {(agent.tokens / 1000).toFixed(0)}K
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--green-500)' }}>
-                      {agent.tasksCompleted}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <span style={{
-                      fontSize: 11,
-                      fontFamily: 'var(--font-mono)',
-                      color: agent.latency > 400 ? 'var(--red-500)' : agent.latency > 200 ? 'var(--yellow-500)' : 'var(--green-500)',
-                    }}>
-                      {agent.latency}ms
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {agents.map((agent) => <AgentRow key={agent.id} agent={agent} />)}
             </tbody>
           </table>
         </div>
 
+        {/* Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: 12,
         }}>
-          {filtered.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
+          {agents.map((agent) => <AgentCard key={agent.id} agent={agent} />)}
         </div>
       </div>
     </Layout>
-  )
-}
-
-function BarCell({ value, max, unit, color }) {
-  const pct = Math.min((value / max) * 100, 100)
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div style={{
-        width: 50,
-        height: 4,
-        background: 'var(--border)',
-        borderRadius: 2,
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          height: '100%',
-          width: `${pct}%`,
-          background: color,
-          borderRadius: 2,
-          boxShadow: `0 0 4px ${color}80`,
-        }} />
-      </div>
-      <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-        {value}{unit}
-      </span>
-    </div>
   )
 }
