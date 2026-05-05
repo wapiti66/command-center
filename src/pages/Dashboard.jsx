@@ -3,6 +3,7 @@ import { useAgentStore } from '../store/agentStore'
 import Layout from '../components/Layout'
 import AgentCard from '../components/AgentCard'
 import ActivityLog from '../components/ActivityLog'
+import AnthropicUsage from '../components/AnthropicUsage'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
@@ -130,6 +131,16 @@ export default function Dashboard() {
           </div>
 
           <ActivityLog limit={8} />
+        </div>
+
+        {/* Anthropic API Usage */}
+        <div style={{
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: 16,
+        }}>
+          <AnthropicUsage />
         </div>
 
         {/* Agents fleet */}
