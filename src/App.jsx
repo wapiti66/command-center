@@ -5,6 +5,7 @@ import Tasks from './pages/Tasks'
 import Analytics from './pages/Analytics'
 import Terminal from './pages/Terminal'
 import Settings from './pages/Settings'
+import TraderKnowledge from './pages/TraderKnowledge'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/terminal" element={<Terminal />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/knowledge" element={<TraderKnowledge />} />
       </Routes>
     </BrowserRouter>
   )

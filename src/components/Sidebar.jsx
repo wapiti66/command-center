@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Bot, CheckSquare, BarChart3,
-  Terminal, Settings, Zap, ChevronRight,
+  Terminal, Settings, Zap, ChevronRight, BookOpen,
 } from 'lucide-react'
 
 const NAV = [
@@ -9,6 +9,7 @@ const NAV = [
   { to: '/agents', icon: Bot, label: 'Agents' },
   { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/knowledge', icon: BookOpen, label: 'Knowledge' },
 ]
 
 const SECONDARY = [
